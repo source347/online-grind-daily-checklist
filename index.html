@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THE GRIND | Master Checklist</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom Compact Styles */
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        
+        /* Ultra compact table cells */
+        td, th {
+            padding: 4px 8px;
+            border-right: 1px solid #e2e8f0;
+            vertical-align: middle;
+        }
+        td:last-child, th:last-child { border-right: none; }
+        
+        /* Checkbox styling */
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #10b981;
+        }
+
+        /* Row hover effect */
+        tr.link-row:hover { background-color: #fffbeb; }
+        
+        /* Checked state styling */
+        tr.checked { background-color: #f0fdf4; }
+        tr.checked a { text-decoration: line-through; color: #94a3b8; }
+        
+        /* Hide scrollbar for clean look */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { bg: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { bg: #888; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-slate-100 p-4 min-h-screen">
+
+    <div class="max-w-5xl mx-auto bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+        
+        <!-- Header -->
+        <div class="bg-slate-900 text-white p-4 border-b-2 border-black flex justify-between items-center sticky top-0 z-10">
+            <div>
+                <h1 class="font-black text-xl uppercase tracking-wider">The Grind: Master Checklist</h1>
+                <p class="text-xs text-slate-400 font-mono mt-1" id="stats">Loading stats...</p>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="copyAll()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1 text-xs font-bold uppercase border border-white/20 transition-colors">
+                    Copy All URLs
+                </button>
+                <button onclick="resetProgress()" class="bg-red-600 hover:bg-red-500 text-white px-3 py-1 text-xs font-bold uppercase border border-white/20 transition-colors">
+                    Reset
+                </button>
+            </div>
+        </div>
+
+        <!-- Compact Table -->
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-slate-200 text-slate-700 uppercase text-xs font-bold sticky top-[73px] z-10 border-b border-black">
+                    <tr>
+                        <th class="w-24 text-center border-r border-slate-300">Bookmarked?</th>
+                        <th class="border-r border-slate-300">Link Details</th>
+                        <th class="w-64">Tags / Category</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody" class="text-sm">
+                    <!-- Javascript will populate this -->
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="bg-slate-100 p-2 text-center text-xs text-slate-500 font-mono border-t border-black">
+            Generated Checklist • Data stored locally in browser
+        </div>
+    </div>
+
+<script>
+    // --- DATA SOURCE ---
+    const LINKS = [
+        // PASSIVE NODES
+        { id: '39', url: 'https://pawns.app/?r=1112465', title: 'Pawns.app', category: 'Passive Nodes', tags: ['Bandwidth', 'Passive'] },
+        { id: '45', url: 'https://app.nodepay.ai/register?ref=5pxS8VIIZzNeDSF', title: 'Nodepay.ai', category: 'Passive Nodes', tags: ['Bandwidth', 'AI', 'Solana'] },
+        { id: '49', url: 'https://app.getgrass.io/register?referralCode=XBPRl6U7sAvvzRX', title: 'GetGrass.io', category: 'Passive Nodes', tags: ['Bandwidth', 'DePIN', 'Tier 1'] },
+        { id: '44', url: 'https://hub.playai.network/?ref=dashboard', title: 'PlayAI Hub', category: 'Passive Nodes', tags: ['AI', 'Node'] },
+        { id: '47', url: 'https://node.optimai.network/register?ref=0EB0B06E', title: 'OptimAI Node', category: 'Passive Nodes', tags: ['Node', 'AI'] },
+        { id: '48', url: 'https://miningblocks.club/?Referral=35696', title: 'MiningBlocks Club', category: 'Passive Nodes', tags: ['Mining Sim'] },
+        { id: '104', url: 'https://robox.digital/i/2160702', title: 'Robox Digital', category: 'Passive Nodes', tags: ['Passive'] },
+        { id: '41', url: 'https://surfe.be/ext/178882', title: 'Surfe.be', category: 'Passive Nodes', tags: ['Extension', 'Ads'] },
+
+        // OG FAUCETS
+        { id: '75', url: 'https://freebitco.in/?r=17006348', title: 'FreeBitco.in', category: 'OG Faucets', tags: ['BTC', 'Legendary', 'Hourly'] },
+        { id: '68', url: 'https://cointiply.com/r/mOnqp', title: 'Cointiply', category: 'OG Faucets', tags: ['Survey', 'Faucet', 'Top Tier'] },
+        { id: '71', url: 'https://faucetpay.io/?r=95880', title: 'FaucetPay', category: 'OG Faucets', tags: ['Wallet', 'Aggregator'] },
+        { id: '67', url: 'https://autofaucet.dutchycorp.space/?r=Autofaucets', title: 'DutchyCorp', category: 'OG Faucets', tags: ['Auto', 'Multi-Coin'] },
+        { id: '72', url: 'https://firefaucet.win/ref/126786', title: 'FireFaucet', category: 'OG Faucets', tags: ['Auto', 'Leveling'] },
+        { id: '70', url: 'https://earnbitmoon.club/?ref=265500', title: 'EarnBitMoon', category: 'OG Faucets', tags: ['Faucet'] },
+        { id: '83', url: 'https://viefaucet.com?r=6380ee9189dc9d60cddeaf22', title: 'VieFaucet', category: 'OG Faucets', tags: ['Faucet'] },
+
+        // HOURLY LOOT
+        { id: '84', url: 'https://dogepick.io/?ref=limana', title: 'DogePick', category: 'Hourly Loot', tags: ['Hourly', 'Doge'] },
+        { id: '85', url: 'https://litepick.io/?ref=source', title: 'LitePick', category: 'Hourly Loot', tags: ['Hourly', 'LTC'] },
+        { id: '86', url: 'https://polpick.io/?ref=dashboard', title: 'PolPick', category: 'Hourly Loot', tags: ['Hourly', 'Matic'] },
+        { id: '87', url: 'https://solpick.io/?ref=dashboard', title: 'SolPick', category: 'Hourly Loot', tags: ['Hourly', 'Solana'] },
+        { id: '88', url: 'https://suipick.io/?ref=dashboard', title: 'SuiPick', category: 'Hourly Loot', tags: ['Hourly', 'Sui'] },
+        { id: '89', url: 'https://tonpick.game/?ref=dashboard', title: 'TonPick', category: 'Hourly Loot', tags: ['Hourly', 'TON'] },
+        { id: '90', url: 'https://usdpick.io?ref=fAYHy9teXq', title: 'USDPick', category: 'Hourly Loot', tags: ['Hourly', 'Stable'] },
+        { id: '73', url: 'https://freebch.in?ref=GYbcNKDvc8', title: 'FreeBCH', category: 'Hourly Loot', tags: ['Hourly'] },
+        { id: '74', url: 'https://freebnb.in?ref=t3guZH6504', title: 'FreeBNB', category: 'Hourly Loot', tags: ['Hourly'] },
+        { id: '76', url: 'https://freearb.in?ref=DT-wOppZxs', title: 'FreeArb', category: 'Hourly Loot', tags: ['Hourly'] },
+        { id: '77', url: 'https://freeshib.in?ref=Q4gBET4aub', title: 'FreeShib', category: 'Hourly Loot', tags: ['Hourly'] },
+        { id: '78', url: 'https://freesui.in?ref=2OBNF6surV', title: 'FreeSui', category: 'Hourly Loot', tags: ['Hourly'] },
+        { id: '79', url: 'https://freetoncoin.in?ref=4oDtavonot', title: 'FreeTon', category: 'Hourly Loot', tags: ['Hourly'] },
+        { id: '80', url: 'https://freetron.in?ref=D96wTKmOPD', title: 'FreeTron', category: 'Hourly Loot', tags: ['Hourly'] },
+        { id: '81', url: 'https://freetrump.in?ref=Qzx6sqZz1E', title: 'FreeTrump', category: 'Hourly Loot', tags: ['Hourly'] },
+        { id: '82', url: 'https://freexrp.in?ref=sKqECBxDCJ', title: 'FreeXRP', category: 'Hourly Loot', tags: ['Hourly'] },
+
+        // MICRO WORK
+        { id: '32', url: 'https://2captcha.com/?from=9690712', title: '2Captcha', category: 'Micro Work', tags: ['Work', 'Solver'] },
+        { id: '36', url: 'https://www.coinpayu.com/?r=dashboard', title: 'CoinPayU', category: 'Micro Work', tags: ['Ads', 'Top Tier'] },
+        { id: '34', url: 'https://r.adbtc.top/1169353', title: 'AdBTC', category: 'Micro Work', tags: ['Ads', 'Sats'] },
+        { id: '35', url: 'https://btcadspace.com/ref/source', title: 'BTC AdSpace', category: 'Micro Work', tags: ['Ads'] },
+        { id: '42', url: 'https://timebucks.com/?refID=219093340', title: 'TimeBucks', category: 'Micro Work', tags: ['Survey', 'Fiat'] },
+        { id: '37', url: 'https://everve.net/ref/678797/', title: 'Everve', category: 'Micro Work', tags: ['Social'] },
+        { id: '33', url: 'https://adbch.top/r/312844', title: 'AdBCH', category: 'Micro Work', tags: ['Ads'] },
+        { id: '38', url: 'https://freeward.net/ref/7pex8', title: 'Freeward', category: 'Micro Work', tags: ['Offers'] },
+        { id: '40', url: 'https://rewardvid.com?ref=ETqLenDf', title: 'RewardVid', category: 'Micro Work', tags: ['Video'] },
+        { id: '43', url: 'https://earnviv.com/?r=36182', title: 'EarnViv', category: 'Micro Work', tags: ['Offers'] },
+        { id: '65', url: 'https://www.publish0x.com/?a=OpnelZ1bKB', title: 'Publish0x', category: 'Micro Work', tags: ['Reading', 'Crypto'] },
+
+        // AIRDROP OPS
+        { id: '66', url: 'https://faucet.iopn.tech/', title: 'IOPN Faucet', category: 'Airdrop Ops', tags: ['Testnet Faucet'] },
+        { id: '9', url: 'https://faucet.circle.com/', title: 'Circle USDC Faucet', category: 'Airdrop Ops', tags: ['Testnet Faucet'] },
+        { id: '17', url: 'https://parthenon.movementlabs.xyz/dashboard', title: 'Movement Labs', category: 'Airdrop Ops', tags: ['L2', 'Testnet'] },
+        { id: '7', url: 'https://testnet.huddle01.com/leaderboard', title: 'Huddle01', category: 'Airdrop Ops', tags: ['DePIN', 'Testnet'] },
+        { id: '1', url: 'https://maxsee.io?k=E7967767', title: 'MaxSee', category: 'Airdrop Ops', tags: ['Watch2Earn', 'New'] },
+        { id: '2', url: 'https://portal.pi2.network/game', title: 'Pi2 Network', category: 'Airdrop Ops', tags: ['Testnet'] },
+        { id: '3', url: 'https://neuraverse.neuraprotocol.io/?section=leaderboard', title: 'Neuraverse', category: 'Airdrop Ops', tags: ['Protocol'] },
+        { id: '4', url: 'https://app.piggycell.io/?ref=5EOPZ8', title: 'PiggyCell', category: 'Airdrop Ops', tags: ['App'] },
+        { id: '5', url: 'https://testnet.lifeai.io/ref?code=WFNY7Z3', title: 'LifeAI Testnet', category: 'Airdrop Ops', tags: ['AI'] },
+        { id: '6', url: 'https://nebulai.network/final-test?invite_by=D1F1kn', title: 'Nebulai Network', category: 'Airdrop Ops', tags: ['Final Test'] },
+        { id: '8', url: 'https://sandchain-hub.caldera.xyz/', title: 'Sandchain Hub', category: 'Airdrop Ops', tags: ['Caldera'] },
+        { id: '10', url: 'https://operator.olivianetwork.com?ref=#OPJ3FIK2', title: 'Olivia Network', category: 'Airdrop Ops', tags: ['Operator'] },
+        { id: '11', url: 'https://devnet-dapp.rayls.com/', title: 'Rayls Devnet', category: 'Airdrop Ops', tags: ['Devnet'] },
+        { id: '12', url: 'https://cedomis.xyz/dashboard', title: 'Cedomis', category: 'Airdrop Ops', tags: ['Dashboard'] },
+        { id: '13', url: 'https://testnet.pharosnetwork.xyz/experience?inviteCode=RfgFyrjEUeC728lB', title: 'Pharos Network', category: 'Airdrop Ops', tags: ['Testnet'] },
+        { id: '14', url: 'https://app.namso.network/dashboard/?ref=A339FDFAE39E', title: 'Namso Network', category: 'Airdrop Ops', tags: ['Testnet'] },
+        { id: '16', url: 'https://proving-grounds.brevis.network/VQcpfa', title: 'Brevis ZK', category: 'Airdrop Ops', tags: ['ZK', 'Proving'] },
+
+        // WEB3 GAMING
+        { id: '22', url: 'https://play.immutable.com/referral/share/8gkaZR?utm_source=referral', title: 'Immutable X', category: 'Web3 Gaming', tags: ['Ecosystem', 'Top Tier'] },
+        { id: '19', url: 'https://play.carv.io/carvpass', title: 'Carv Protocol', category: 'Web3 Gaming', tags: ['Data', 'Gaming ID'] },
+        { id: '27', url: 'https://rollercoin.com/?r=kcq1472k', title: 'RollerCoin', category: 'Web3 Gaming', tags: ['Sim', 'Classic'] },
+        { id: '26', url: 'https://t.me/gamee/start?startapp=eyJyZWYiOjMzMzYwMDY0MH0', title: 'Gamee (TG)', category: 'Web3 Gaming', tags: ['Telegram', 'Mobile'] },
+        { id: '18', url: 'https://s.trex.xyz/lltWFq', title: 'Trex.xyz', category: 'Web3 Gaming', tags: ['Game'] },
+        { id: '20', url: 'https://quests.yom.net/loyalty?referral_code=I0SWSZ6V', title: 'YOM Quests', category: 'Web3 Gaming', tags: ['Metaverse'] },
+        { id: '21', url: 'https://nomstead.com/?ref=dhqgys6b', title: 'Nomstead', category: 'Web3 Gaming', tags: ['Game'] },
+        { id: '23', url: 'https://prometheansaga.com?r=u9Jva2XK', title: 'Promethean Saga', category: 'Web3 Gaming', tags: ['RPG'] },
+        { id: '24', url: 'https://app.luckyx.world/?p=Yie918', title: 'LuckyX World', category: 'Web3 Gaming', tags: ['Arcade'] },
+        { id: '25', url: 'https://bch.games/play/dashboard', title: 'BCH Games', category: 'Web3 Gaming', tags: ['Casino'] },
+        { id: '28', url: 'https://simplebits.io/ref/0rd4li1cSLTL', title: 'SimpleBits', category: 'Web3 Gaming', tags: ['Sim'] },
+        { id: '29', url: 'https://limercoin.com/?ref=4i6ljids', title: 'LimerCoin', category: 'Web3 Gaming', tags: ['Sim'] },
+        { id: '30', url: 'https://luckywatch.pro/u/0oqit', title: 'LuckyWatch', category: 'Web3 Gaming', tags: ['Game'] },
+        { id: '31', url: 'https://camphaven.xyz/profile', title: 'CampHaven', category: 'Web3 Gaming', tags: ['Social'] },
+
+        // QUEST BOARD
+        { id: '54', url: 'https://app.galxe.com/hub/gigapot', title: 'Galxe', category: 'Quest Board', tags: ['Major Platform', 'Quests'] },
+        { id: '57', url: 'https://dscvr.one/invite/dashboard?ur=e99a9b5f-4449-4382-943b-71579aadfa85', title: 'DSCVR', category: 'Quest Board', tags: ['SocialFi', 'Solana'] },
+        { id: '63', url: 'https://skynet.certik.com/quest/signup?referralId=4324d09a-bf19-437c-8635-645a52dbf136', title: 'Certik Skynet', category: 'Quest Board', tags: ['Security', 'Quests'] },
+        { id: '50', url: 'https://app.optimai.im/generate-tweet', title: 'OptimAI Social', category: 'Quest Board', tags: ['Social'] },
+        { id: '51', url: 'https://app.fight.id/signup?code=FEFDB806', title: 'Fight.id', category: 'Quest Board', tags: ['Social'] },
+        { id: '52', url: 'https://yupp.ai/join/ruby-square-engine', title: 'Yupp.ai', category: 'Quest Board', tags: ['AI'] },
+        { id: '53', url: 'https://surflayer.xyz?ref=8d285aa34e', title: 'SurfLayer', category: 'Quest Board', tags: ['Social'] },
+        { id: '55', url: 'https://my.aidapp.com/?refCode=XE9RnUdhxDi1XNw', title: 'AiDapp', category: 'Quest Board', tags: ['AI'] },
+        { id: '56', url: 'https://app.sapien.io/t/airdrop', title: 'Sapien', category: 'Quest Board', tags: ['Data'] },
+        { id: '58', url: 'https://app.codatta.io/referral/a4591r', title: 'Codatta', category: 'Quest Board', tags: ['Data'] },
+        { id: '59', url: 'https://mission.superintent.ai/?referralCode=eIJAOWtvmB', title: 'SuperIntent', category: 'Quest Board', tags: ['AI'] },
+        { id: '60', url: 'https://app.gata.xyz?invite_code=8epdx7rg', title: 'Gata.xyz', category: 'Quest Board', tags: ['Community'] },
+        { id: '61', url: 'https://dashboard.aro.network/signup?referral=GJIXM0', title: 'Aro Network', category: 'Quest Board', tags: ['DePIN'] },
+        { id: '62', url: 'https://blockstreet.money/dashboard?invite_code=mvEz8G', title: 'BlockStreet', category: 'Quest Board', tags: ['Finance'] },
+        { id: '64', url: 'https://rubi.social/join/DASHBOARD', title: 'Rubi', category: 'Quest Board', tags: ['Social'] },
+
+        // INFRASTRUCTURE
+        { id: '91', url: 'https://accounts.binance.com/register?ref=49685937', title: 'Binance', category: 'Infrastructure', tags: ['Exchange', 'Tier 1'] },
+        { id: '92', url: 'https://www.mexc.com/auth/signup?inviteCode=2pLgC', title: 'MEXC Global', category: 'Infrastructure', tags: ['Exchange'] },
+        { id: '98', url: 'https://eth.blockscout.com/?ref=6RZXK3', title: 'Blockscout', category: 'Infrastructure', tags: ['Explorer'] },
+        { id: '96', url: 'https://www.rainbow.me/points?ref=66K7GM', title: 'Rainbow Wallet', category: 'Infrastructure', tags: ['Wallet', 'Points'] },
+        { id: '97', url: 'https://newshare.bwb.global/en/referralLanding?inviteCode=ZnYvar&type=card', title: 'Bitget Wallet', category: 'Infrastructure', tags: ['Wallet', 'BWB'] },
+        { id: '93', url: 'https://payeer.com/?session=11397475', title: 'Payeer', category: 'Infrastructure', tags: ['Fiat Ramp'] },
+        { id: '94', url: 'https://ncwallet.net/invite/WDRRP0BM', title: 'NC Wallet', category: 'Infrastructure', tags: ['No Fee'] },
+        { id: '95', url: 'https://sosovalue.com/join/0DCN0PVQ', title: 'SoSoValue', category: 'Infrastructure', tags: ['Analytics'] },
+        { id: '99', url: 'https://dashboard.3dos.io/register?ref_code=6d8572', title: '3Dos', category: 'Infrastructure', tags: ['Tool'] },
+        { id: '100', url: 'https://start.me/p/aL44E0/online-income', title: 'Start.me Income', category: 'Infrastructure', tags: ['Resource'] },
+        { id: '101', url: 'https://start.me/p/lLBAx7/free-crypto', title: 'Start.me Crypto', category: 'Infrastructure', tags: ['Resource'] },
+        { id: '102', url: 'https://cryptokinase.dropmark.com/1141913', title: 'CryptoKinase', category: 'Infrastructure', tags: ['Resource'] },
+        { id: '103', url: 'https://beacons.ai/dashboard', title: 'Beacons.ai', category: 'Infrastructure', tags: ['Tool'] },
+        { id: '105', url: 'https://bitpixl.com/W1W3V6EU', title: 'BitPixl', category: 'Infrastructure', tags: ['Tool'] },
+
+        // HIGH RISK
+        { id: '106', url: 'https://signup.billions.network/?rc=IMENAAXD', title: 'Billions Network', category: 'High Risk / Labs', tags: ['High Yield'] },
+        { id: '107', url: 'https://t.me/EtherDROPS_bot?start=promo_OYJAP5', title: 'EtherDrops Bot', category: 'Infrastructure', tags: ['Bot', 'Tracking'] }
+    ];
+
+    // --- APP LOGIC ---
+    const STORAGE_KEY = 'grind_checklist_v1';
+    let checkedItems = new Set();
+
+    // Init
+    function init() {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            checkedItems = new Set(JSON.parse(saved));
+        }
+        renderTable();
+        updateStats();
+    }
+
+    // Save
+    function saveState() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(checkedItems)));
+        updateStats();
+    }
+
+    // Toggle Check
+    function toggle(id) {
+        if (checkedItems.has(id)) {
+            checkedItems.delete(id);
+        } else {
+            checkedItems.add(id);
+        }
+        saveState();
+        renderTable(); // Re-render to update styling
+    }
+
+    // Toggle Category
+    function toggleCategory(categoryName) {
+        const categoryLinks = LINKS.filter(l => l.category === categoryName);
+        const allChecked = categoryLinks.every(l => checkedItems.has(l.id));
+
+        if (allChecked) {
+            categoryLinks.forEach(l => checkedItems.delete(l.id));
+        } else {
+            categoryLinks.forEach(l => checkedItems.add(l.id));
+        }
+        saveState();
+        renderTable();
+    }
+
+    // Reset
+    function resetProgress() {
+        if(confirm("Are you sure you want to uncheck all?")) {
+            checkedItems = new Set();
+            saveState();
+            renderTable();
+        }
+    }
+    
+    // Copy All
+    function copyAll() {
+        const urls = LINKS.map(l => l.url).join('\n');
+        navigator.clipboard.writeText(urls);
+        alert('All ' + LINKS.length + ' URLs copied to clipboard!');
+    }
+
+    // Update Stats
+    function updateStats() {
+        const percent = Math.round((checkedItems.size / LINKS.length) * 100);
+        document.getElementById('stats').textContent = `${checkedItems.size}/${LINKS.length} COMPLETE (${percent}%)`;
+    }
+
+    // Render
+    function renderTable() {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+        
+        // Group by category
+        const groups = {};
+        LINKS.forEach(link => {
+            if (!groups[link.category]) groups[link.category] = [];
+            groups[link.category].push(link);
+        });
+
+        for (const [category, links] of Object.entries(groups)) {
+            // Category Header
+            const catRow = document.createElement('tr');
+            catRow.className = "bg-slate-200 border-b border-slate-300";
+            catRow.innerHTML = `
+                <td colspan="3" class="p-2">
+                    <div class="flex justify-between items-center">
+                        <span class="font-black text-xs uppercase tracking-wider">${category}</span>
+                        <button onclick="toggleCategory('${category}')" class="text-[10px] text-blue-600 font-bold hover:underline">
+                            CHECK/UNCHECK GROUP
+                        </button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(catRow);
+
+            // Links
+            links.forEach(link => {
+                const isChecked = checkedItems.has(link.id);
+                const row = document.createElement('tr');
+                row.className = `link-row border-b border-slate-200 transition-all ${isChecked ? 'checked' : ''}`;
+                
+                // Tags HTML
+                const tagsHtml = link.tags.map(t => 
+                    `<span class="inline-block bg-white border border-slate-300 rounded px-1 text-[9px] text-slate-500 mr-1 mb-1 whitespace-nowrap">${t}</span>`
+                ).join('');
+
+                row.innerHTML = `
+                    <td class="text-center">
+                        <label class="block w-full h-full cursor-pointer flex items-center justify-center p-1">
+                            <input type="checkbox" onchange="toggle('${link.id}')" ${isChecked ? 'checked' : ''}>
+                        </label>
+                    </td>
+                    <td>
+                        <a href="${link.url}" target="_blank" class="block py-1 hover:text-blue-600 font-bold text-slate-800">
+                            ${link.title}
+                        </a>
+                        <div class="text-[10px] text-slate-400 font-mono truncate max-w-md">${link.url}</div>
+                    </td>
+                    <td class="align-middle">
+                        <div class="flex flex-wrap">${tagsHtml}</div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+    }
+
+    // Run
+    init();
+
+</script>
+</body>
+</html>
